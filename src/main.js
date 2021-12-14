@@ -1,4 +1,4 @@
-const products = [
+/* const products = [
     {
       name: "Giant BBQ",
       image: "https://i.imgur.com/yPreV19.png",
@@ -43,10 +43,43 @@ const products = [
       sold: 2,
       index: 3,
     },
-  ]
+  ] */
+
+import Web3 from 'web3'
+import { newKitFromWeb3 } from '@celo/contractkit'
+import BigNumber from "bignumber.js"
+
+const ERC20_DECIMALS = 18
+
+let kit
+
+
+
+const connectCeloWallet = async function () {
+    if (window.celo) {
+      notification("⚠️ Please approve this DApp to use it.")
+      try {
+        await window.celo.enable()
+        notificationOff()
   
-  const getBalance = function () {
-    document.querySelector("#balance").textContent = 21
+        const web3 = new Web3(window.celo)
+        kit = newKitFromWeb3(web3)
+  
+        const accounts = await kit.web3.eth.getAccounts()
+        kit.defaultAccount = accounts[0]
+  
+      } catch (error) {
+        notification(`⚠️ ${error}.`)
+      }
+    } else {
+      notification("⚠️ Please install the CeloExtensionWallet.")
+    }
+  }
+  
+  const getBalance = async function () {
+    const totalBalance = await kit.getTotalBalance(kit.defaultAccount)
+    const cUSDBalance = totalBalance.cUSD.shiftedBy(-ERC20_DECIMALS).toFixed(2)
+    document.querySelector("#balance").textContent = cUSDBalance
   }
   
   function renderProducts() {
@@ -59,6 +92,13 @@ const products = [
     })
   }
   
+  window.addEventListener('load', async () => {
+    notification("⌛ Loading...")
+    await connectCeloWallet()
+    await getBalance()
+    notificationOff()
+  });
+
   function productTemplate(_product) {
     return `
       <div class="card mb-4">
