@@ -255,7 +255,7 @@ const connectCeloWallet = async function () {
           notification(`🎉 You successfully bought "${products[index].name}".`)
           getProducts()
           getBalance()
-    } catch(){
+    } catch(error){
       notification(`⚠️ Error buying product.`)
     }
   }
