@@ -49,9 +49,11 @@ import Web3 from 'web3'
 import { newKitFromWeb3 } from '@celo/contractkit'
 import BigNumber from "bignumber.js"
 import marketplaceAbi from '../contract/marketplace.abi.json'
+import erc20Abi from "../contract/erc20.abi.json"
 
 const ERC20_DECIMALS = 18
 const MPContractAddress = "0x5d5Bc74c49c7C6c6F8E3F07dAB1bC973dA4bC50d"
+const cUSDContractAddress = "0xd2e63f44565ced986ce4fcd6119558e5ccf5b7cb"
 
 let kit
 let contract
@@ -80,6 +82,15 @@ const connectCeloWallet = async function () {
     } else {
       notification("⚠️ Please install the CeloExtensionWallet.")
     }
+  }
+
+  async function approval(_price) {
+      const cUSDContract = new kit.web3.eth.contract(erc20Abi, cUSDContractAddress)
+
+      const result = await cUSDContract.methods
+        .approve(MPContractAddress, _price)
+        .send({ from: kit.defaultAccount})
+      return result
   }
   
   const getBalance = async function () {
@@ -228,11 +239,24 @@ const connectCeloWallet = async function () {
     })
     
   
-  document.querySelector("#marketplace").addEventListener("click", (e) => {
+  document.querySelector("#marketplace").addEventListener("click", async(e) => {
     if(e.target.className.includes("buyBtn")) {
       const index = e.target.id
-      products[index].sold++
-      notification(`🎉 You successfully bought "${products[index].name}".`)
-      renderProducts()
+      notification(`⌛ waiting for  payment approcal for "${products[index].name}"...`)
+      try{
+        await approve(products[index].price)
+      } catch(error) {
+        notification(`⚠️ Error approving payment.`)
+      }
+      try {
+        const result = await contract.methods
+          .buyProduct(index)
+          .send({ from: kit.defaultAccount })
+          notification(`🎉 You successfully bought "${products[index].name}".`)
+          getProducts()
+          getBalance()
+    } catch(){
+      notification(`⚠️ Error buying product.`)
     }
-  })
+  }
+})
