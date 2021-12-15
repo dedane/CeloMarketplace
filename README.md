@@ -5,7 +5,7 @@ This is a very simple marketplace dapp where users can:
 * Add your own products to the dapp
 
 ## Live Demo
-[Marketplace Dapp](https://dedane.github.io/celo-marketplace-dapp/)
+[Marketplace Dapp](https://dedane.github.io/CeloMarketplace/)
 
 ## Usage
 
